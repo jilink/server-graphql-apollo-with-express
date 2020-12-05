@@ -28,4 +28,22 @@ describe("user", () => {
       expect(result.data).to.eql(expectedResult);
     });
   });
+
+  describe("deleteUser(id:String!): Boolean!", () => {
+    it("returns an error becauuse only admins can delete a user", async () => {
+      const {
+        data: {
+          data: {
+            signIn: { token },
+          },
+        },
+      } = await userApi.signIn({ login: "John", password: "johnisbg" });
+
+      const {
+        data: { errors },
+      } = await userApi.deleteUser({ id: "1" }, token);
+
+      expect(errors[0].message).to.eql("Not an admin bro");
+    });
+  });
 });
