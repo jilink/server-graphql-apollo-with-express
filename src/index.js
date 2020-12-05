@@ -4,6 +4,8 @@ import cors from "cors";
 import express from "express";
 import { ApolloServer, AuthenticationError } from "apollo-server-express";
 import jwt from "jsonwebtoken";
+import DataLoader from "dataloader";
+import loaders from "./loaders";
 
 import schema from "./schema";
 import resolvers from "./resolvers";
@@ -41,7 +43,12 @@ const server = new ApolloServer({
   },
   context: async ({ req, connection }) => {
     if (connection) {
-      return { models };
+      return {
+        models,
+        loaders: {
+          user: new DataLoader((keys) => loaders.user.batchUsers(keys, models)),
+        },
+      };
     }
     if (req) {
       const me = await getMe(req);
@@ -50,6 +57,9 @@ const server = new ApolloServer({
         //me: await models.User.findByLogin("Jilink"),
         me,
         secret: process.env.SECRET,
+        loaders: {
+          user: new DataLoader((keys) => loaders.user.batchUsers(keys, models)),
+        },
       };
     }
   },
